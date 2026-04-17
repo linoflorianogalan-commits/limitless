@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Limitless">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Limitless Resell</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#fff;--bg2:#f5f5f4;--bg3:#eee;--text:#1a1a1a;--text2:#6b6b6b;--text3:#9a9a9a;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.2);--green:#0F6E56;--green-bg:#E1F5EE;--green-text:#085041;--amber:#854F0B;--amber-bg:#FAEEDA;--amber-text:#633806;--red:#A32D2D;--red-bg:#FCEBEB;--red-text:#791F1F;--blue:#185FA5;--blue-bg:#E6F1FB;--blue-text:#0C447C;--gray-bg:#EAF3DE;--gray-text:#27500A;--radius:10px;--radius-lg:14px}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1e;--bg2:#2c2c2e;--bg3:#3a3a3c;--text:#f2f2f7;--text2:#aeaeb2;--text3:#636366;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.2);--green:#5DCAA5;--green-bg:#04342C;--green-text:#9FE1CB;--amber:#EF9F27;--amber-bg:#412402;--amber-text:#FAC775;--red:#F09595;--red-bg:#501313;--red-text:#F7C1C1;--blue:#85B7EB;--blue-bg:#042C53;--blue-text:#B5D4F4;--gray-bg:#173404;--gray-text:#C0DD97}}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;overscroll-behavior:none}
+#app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto}
+.header{padding:16px 16px 8px;padding-top:max(16px,env(safe-area-inset-top))}
+.header h1{font-size:22px;font-weight:700;letter-spacing:-.5px}
+.header p{font-size:13px;color:var(--text2);margin-top:2px}
+.content{flex:1;overflow-y:auto;padding:0 16px 16px;-webkit-overflow-scrolling:touch}
+.page{display:none}.page.active{display:block}
+.bottom-nav{display:flex;border-top:.5px solid var(--border);padding-bottom:max(12px,env(safe-area-inset-bottom));background:var(--bg)}
+.nav-btn{flex:1;padding:10px 2px 6px;border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;font-weight:500}
+.nav-btn.active{color:var(--text)}
+.nav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.metric{background:var(--bg2);border-radius:var(--radius);padding:13px 14px}
+.metric .lbl{font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:500;text-transform:uppercase;letter-spacing:.03em}
+.metric .val{font-size:21px;font-weight:700;letter-spacing:-.5px}
+.metric .sub{font-size:11px;color:var(--text3);margin-top:2px}
+.card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px}
+.card-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.badge{display:inline-block;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:600}
+.b-stock{background:var(--green-bg);color:var(--green-text)}
+.b-sold{background:var(--gray-bg);color:var(--gray-text)}
+.b-res{background:var(--amber-bg);color:var(--amber-text)}
+.b-cancel{background:var(--red-bg);color:var(--red-text)}
+.item-row{padding:11px 0;border-bottom:.5px solid var(--border);cursor:pointer}
+.item-row:last-child{border-bottom:none}
+.item-name{font-size:14px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-meta{font-size:12px;color:var(--text2)}
+.row-flex{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.profit-pos{color:var(--green);font-size:12px;font-weight:600;margin-top:4px}
+.profit-neg{color:var(--red);font-size:12px;font-weight:600;margin-top:4px}
+.saldo-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:.5px solid var(--border);font-size:14px}
+.saldo-row:last-child{border-bottom:none}
+.filter-scroll{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px;scrollbar-width:none}
+.filter-scroll::-webkit-scrollbar{display:none}
+.f-btn{white-space:nowrap;font-size:12px;padding:6px 14px;border-radius:20px;border:.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-weight:500;flex-shrink:0}
+.f-btn.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.search-wrap{position:relative;margin-bottom:12px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round}
+.search-input{width:100%;font-size:14px;padding:9px 12px 9px 34px;border-radius:var(--radius);border:.5px solid var(--border);background:var(--bg2);color:var(--text)}
+.search-input::placeholder{color:var(--text3)}
+.form-section{margin-bottom:16px}
+.form-section .section-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.form-row{margin-bottom:10px}
+.form-row label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.form-row input,.form-row select,.form-row textarea{width:100%;font-size:15px;padding:10px 12px;border-radius:var(--radius);border:.5px solid var(--border);background:var(--bg2);color:var(--text);-webkit-appearance:none;appearance:none}
+.form-row textarea{resize:none;height:80px;font-family:inherit}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-primary{width:100%;padding:14px;border-radius:var(--radius-lg);border:none;background:var(--text);color:var(--bg);font-size:16px;font-weight:600;cursor:pointer;margin-top:4px}
+.btn-primary:active{opacity:.85}
+.btn-danger{width:100%;padding:12px;border-radius:var(--radius);border:.5px solid var(--red);background:transparent;color:var(--red);font-size:14px;font-weight:500;cursor:pointer}
+.btn-secondary{width:100%;padding:12px;border-radius:var(--radius);border:.5px solid var(--border2);background:var(--bg2);color:var(--text);font-size:14px;font-weight:500;cursor:pointer}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:90vh;overflow-y:auto;padding-bottom:max(20px,env(safe-area-inset-bottom))}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:16px;letter-spacing:-.3px}
+.alert-card{padding:10px 12px;border-radius:var(--radius);margin-bottom:8px;font-size:13px;font-weight:500}
+.total-row{display:flex;justify-content:space-between;padding:12px 0 4px;font-size:15px;font-weight:700}
+.empty{text-align:center;color:var(--text3);font-size:14px;padding:3rem 0}
+.edit-btn{font-size:12px;padding:4px 10px;border:.5px solid var(--border);border-radius:6px;background:transparent;cursor:pointer;color:var(--text2)}
+.lock-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+.lock-screen h1{font-size:24px;font-weight:700;margin-bottom:8px}
+.lock-screen p{font-size:14px;color:var(--text2);margin-bottom:32px}
+.lock-screen input{width:100%;max-width:280px;font-size:18px;padding:12px 16px;border-radius:var(--radius-lg);border:.5px solid var(--border2);background:var(--bg2);color:var(--text);text-align:center;letter-spacing:2px;margin-bottom:12px}
+.lock-screen button{width:100%;max-width:280px;padding:13px;border-radius:var(--radius-lg);border:none;background:var(--text);color:var(--bg);font-size:16px;font-weight:600;cursor:pointer}
+.lock-error{color:var(--red);font-size:13px;margin-top:8px;display:none}
+.item-photo{width:100%;height:180px;object-fit:cover;border-radius:var(--radius);margin-bottom:12px}
+.photo-placeholder{width:100%;height:60px;border-radius:var(--radius);background:var(--bg2);border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text3)}
+.dias-badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;margin-left:5px;vertical-align:middle}
+.dias-ok{background:var(--green-bg);color:var(--green-text)}
+.dias-alert{background:var(--red-bg);color:var(--red-text)}
+.nota-card{background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:8px;font-size:14px;line-height:1.5;cursor:pointer}
+.nota-fecha{font-size:11px;color:var(--text3);margin-top:6px}
+.chart-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.chart-bar-bg{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.chart-bar{height:100%;border-radius:4px;transition:width .4s}
+.install-banner{background:var(--blue-bg);color:var(--blue-text);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:500;display:none;align-items:center;justify-content:space-between;gap:8px}
+.install-banner button{font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--blue-text);background:transparent;color:var(--blue-text);cursor:pointer;font-weight:600}
+</style>
+</head>
+<body>
+
+<div id="lock-screen" class="lock-screen">
+  <h1>Limitless</h1>
+  <p>Introduce tu contraseña</p>
+  <input type="password" id="lock-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()">
+  <button onclick="checkPassword()">Entrar</button>
+  <div class="lock-error" id="lock-error">Contraseña incorrecta</div>
+</div>
+
+<div id="app" style="display:none">
+  <div class="header">
+    <div id="install-banner" class="install-banner"><span>Instala la app en tu móvil</span><button id="install-btn">Instalar</button></div>
+    <h1 id="page-title">Dashboard</h1>
+    <p id="page-sub">Limitless Resell</p>
+  </div>
+  <div class="content">
+
+    <div id="page-dashboard" class="page active">
+      <div class="metric-grid" id="metrics"></div>
+      <div class="card"><div class="card-title">Beneficio por mes</div><div id="chart-meses"></div></div>
+      <div class="card"><div class="card-title">Por categoría</div><div id="chart-cats"></div></div>
+      <div class="card"><div class="card-title">Estado del stock</div><div id="estado-resumen"></div></div>
+      <div class="card"><div class="card-title">Alertas</div><div id="alertas"></div></div>
+    </div>
+
+    <div id="page-stock" class="page">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" id="search" placeholder="Buscar artículo, plataforma, categoría..." oninput="renderStock()">
+      </div>
+      <div class="filter-scroll">
+        <button class="f-btn active" onclick="setFilter('Todos')">Todos</button>
+        <button class="f-btn" onclick="setFilter('En stock')">En stock</button>
+        <button class="f-btn" onclick="setFilter('Vendido')">Vendido</button>
+        <button class="f-btn" onclick="setFilter('Reservado')">Reservado</button>
+        <button class="f-btn" onclick="setFilter('Cancelado')">Cancelado</button>
+        <button class="f-btn" onclick="setFilter('Devuelto')">Devuelto</button>
+      </div>
+      <div id="stock-list"></div>
+    </div>
+
+    <div id="page-bancos" class="page">
+      <div class="card" id="bancos-card"></div>
+      <button class="btn-secondary" onclick="addBanco()" style="width:100%">+ Añadir cuenta</button>
+    </div>
+
+    <div id="page-facturas" class="page">
+      <div class="filter-scroll" style="margin-bottom:14px">
+        <button class="f-btn active" id="tab-venta" onclick="switchFacturaTab('venta')">Emitidas</button>
+        <button class="f-btn" id="tab-compra" onclick="switchFacturaTab('compra')">Compras Gmail</button>
+      </div>
+      <div id="subtab-venta">
+        <button class="btn-primary" onclick="nuevaFactura()" style="margin-bottom:14px">+ Nueva factura</button>
+        <div id="facturas-list"></div>
+      </div>
+      <div id="subtab-compra" style="display:none">
+        <div id="gmail-status" class="card" style="margin-bottom:12px">
+          <div class="card-title">Conectar Gmail</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Conecta tu cuenta de Google para ver las facturas de la etiqueta "facturas limitless snkrs".</p>
+          <button class="btn-primary" onclick="gmailLogin()">Conectar con Google</button>
+        </div>
+        <div id="gmail-facturas"></div>
+      </div>
+    </div>
+
+    <div id="page-nuevo" class="page">
+      <div class="form-section">
+        <div class="section-title">Datos del artículo</div>
+        <div class="form-row"><label>Artículo *</label><input id="n-art" placeholder="Nombre del artículo" autocomplete="off"></div>
+        <div class="form-grid">
+          <div class="form-row"><label>Talla / Formato</label><input id="n-size" placeholder="EU 44 / X"></div>
+          <div class="form-row"><label>Uds.</label><input id="n-uds" type="number" value="1" min="1"></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row"><label>Coste unit. (€) *</label><input id="n-coste" type="number" placeholder="0" inputmode="decimal"></div>
+          <div class="form-row"><label>Categoría</label>
+            <select id="n-cat"><option>Zapatillas</option><option>Ropa</option><option>Tickets</option><option>Coleccionables</option><option>Vinilos</option><option>Otro</option></select>
+          </div>
+        </div>
+        <div class="form-row"><label>Fecha de compra</label><input id="n-fecha" type="date"></div>
+      </div>
+      <div class="form-section">
+        <div class="section-title">Venta</div>
+        <div class="form-grid">
+          <div class="form-row"><label>Estado</label>
+            <select id="n-estado"><option>En stock</option><option>Vendido</option><option>Reservado</option><option>Cancelado</option></select>
+          </div>
+          <div class="form-row"><label>VAT Flip</label>
+            <select id="n-vat"><option value="No">No</option><option value="Sí">Sí</option></select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row"><label>Ingreso venta (€)</label><input id="n-ingreso" type="number" placeholder="0" inputmode="decimal"></div>
+          <div class="form-row"><label>Plataforma</label>
+            <select id="n-plat"><option>—</option><option>StockX</option><option>Wallapop</option><option>Vinted</option><option>Alias</option><option>Local</option><option>Instagram</option><option>Otra</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-title">Foto</div>
+        <div class="photo-placeholder" onclick="document.getElementById('n-foto-input').click()">
+          <span id="n-foto-label">+ Añadir foto (cámara o galería)</span>
+        </div>
+        <input type="file" id="n-foto-input" accept="image/*" style="display:none" onchange="previewFoto(this,'n-foto-label','n-foto-data')">
+        <input type="hidden" id="n-foto-data">
+      </div>
+      <div class="form-section">
+        <div class="section-title">Extra</div>
+        <div class="form-row"><label>Notas</label><input id="n-notas" placeholder="Reserva, preventa, local..."></div>
+      </div>
+      <button class="btn-primary" onclick="addItem()">Guardar artículo</button>
+    </div>
+
+    <div id="page-notas" class="page">
+      <button class="btn-primary" onclick="nuevaNota()" style="margin-bottom:14px">+ Nueva nota</button>
+      <div id="notas-list"></div>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showPage('dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Inicio
+    </button>
+    <button class="nav-btn" onclick="showPage('stock')">
+      <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Stock
+    </button>
+    <button class="nav-btn" onclick="showPage('bancos')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Bancos
+    </button>
+    <button class="nav-btn" onclick="showPage('facturas')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Facturas
+    </button>
+    <button class="nav-btn" onclick="showPage('nuevo')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Nuevo
+    </button>
+    <button class="nav-btn" onclick="showPage('notas')">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Notas
+    </button>
+  </nav>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-content"><div class="modal-handle"></div></div>
+</div>
+
+<script>
+const SK='limitless_stock_v1',BK='limitless_bancos_v1',FK='limitless_facturas_v1',NK='limitless_notas_v1',FNK='limitless_factura_num_v1';
+const GID='767255801357-46g30g2jpeesraopohrva3nft80gb1lt.apps.googleusercontent.com';
+const DIAS=10;
+
+const IS=[
+  {id:1,art:'Jellycat',size:'X',uds:2,coste:23.5,estado:'En stock',ingreso:0,vat:'No',cat:'Coleccionables',notas:'',plat:'—',fecha:'',foto:''},
+  {id:2,art:'Nike Ronaldinho FCB',size:'M',uds:1,coste:129.99,estado:'Vendido',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:3,art:'Pokémon Chaos Rising Booster',size:'X',uds:1,coste:49.9,estado:'En stock',ingreso:0,vat:'Sí',cat:'Coleccionables',notas:'RESERVA',plat:'—',fecha:'',foto:''},
+  {id:4,art:'Zapato piel Willi Chavarria',size:'37',uds:1,coste:99.95,estado:'En stock',ingreso:0,vat:'Sí',cat:'Ropa',notas:'',plat:'—',fecha:'',foto:''},
+  {id:5,art:'Zapato tacón Willy Chavarria',size:'38',uds:1,coste:99.95,estado:'En stock',ingreso:0,vat:'Sí',cat:'Ropa',notas:'',plat:'—',fecha:'',foto:''},
+  {id:6,art:'Camiseta Willy Chavarria',size:'S',uds:1,coste:25.95,estado:'En stock',ingreso:0,vat:'Sí',cat:'Ropa',notas:'',plat:'—',fecha:'',foto:''},
+  {id:7,art:'Camisa Willy Chavarria',size:'S',uds:1,coste:39.95,estado:'En stock',ingreso:0,vat:'Sí',cat:'Ropa',notas:'',plat:'—',fecha:'',foto:''},
+  {id:8,art:'Sudadera Willy Chavarria',size:'L',uds:1,coste:59.95,estado:'En stock',ingreso:0,vat:'Sí',cat:'Ropa',notas:'',plat:'—',fecha:'',foto:''},
+  {id:9,art:'Sudadera Willy Chavarria',size:'L',uds:1,coste:59.95,estado:'En stock',ingreso:0,vat:'Sí',cat:'Ropa',notas:'',plat:'—',fecha:'',foto:''},
+  {id:10,art:'Camiseta texto Willy Chavarria',size:'S',uds:1,coste:19.95,estado:'En stock',ingreso:0,vat:'Sí',cat:'Ropa',notas:'',plat:'—',fecha:'',foto:''},
+  {id:11,art:'Nike Mind 001 W Black Chrome',size:'38',uds:1,coste:90,estado:'Vendido',ingreso:100,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:12,art:'Nike Mind 001 W Black Chrome',size:'38',uds:1,coste:90,estado:'En stock',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:13,art:'Kobe Proto City of Champions',size:'45',uds:1,coste:150,estado:'En stock',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:14,art:'Vans Mushrooms',size:'43',uds:1,coste:103.5,estado:'Vendido',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'En tránsito',plat:'—',fecha:'',foto:''},
+  {id:15,art:'Vans Mushrooms',size:'45',uds:1,coste:103.5,estado:'Vendido',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'En tránsito',plat:'—',fecha:'',foto:''},
+  {id:16,art:'Vans Pearlized Blue',size:'45',uds:1,coste:130,estado:'Vendido',ingreso:109,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:17,art:'Vans Pearlized Blue',size:'45',uds:1,coste:130,estado:'En stock',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:18,art:'Sudadera Fire Adidas',size:'M',uds:1,coste:98,estado:'En stock',ingreso:0,vat:'Sí',cat:'Ropa',notas:'',plat:'—',fecha:'',foto:''},
+  {id:19,art:'Funko Star Wars Imperial Remnant',size:'X',uds:5,coste:19.99,estado:'En stock',ingreso:0,vat:'Sí',cat:'Coleccionables',notas:'',plat:'—',fecha:'',foto:''},
+  {id:20,art:'Nike Jacquemus Moonshoe Blanca',size:'46',uds:1,coste:160,estado:'Vendido',ingreso:185,vat:'No',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:21,art:'Vans Slip On Camo',size:'43',uds:1,coste:103.5,estado:'Vendido',ingreso:123.5,vat:'No',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:22,art:'Adidas x Hartcopy',size:'45',uds:1,coste:130,estado:'Cancelado',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'CANCEL',plat:'—',fecha:'',foto:''},
+  {id:23,art:'Vans Pearlized Blue',size:'44.5',uds:1,coste:130,estado:'En stock',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:24,art:'Vinilo Espresso 2 Year Anniversary',size:'X',uds:1,coste:66.37,estado:'En stock',ingreso:0,vat:'No',cat:'Vinilos',notas:'PREVENTA AGOSTO',plat:'—',fecha:'',foto:''},
+  {id:25,art:'Sudadera Harry Styles',size:'M',uds:1,coste:112,estado:'En stock',ingreso:0,vat:'No',cat:'Ropa',notas:'',plat:'—',fecha:'',foto:''},
+  {id:26,art:'Vinilo Rauw Alejandro 20 uds',size:'X',uds:1,coste:85,estado:'En stock',ingreso:0,vat:'No',cat:'Vinilos',notas:'',plat:'—',fecha:'',foto:''},
+  {id:27,art:'Bad Bunny',size:'X',uds:6,coste:94.3,estado:'Vendido',ingreso:964,vat:'No',cat:'Tickets',notas:'local',plat:'Local',fecha:'',foto:''},
+  {id:28,art:'Bad Bunny',size:'X',uds:1,coste:96.3,estado:'Vendido',ingreso:130,vat:'No',cat:'Tickets',notas:'local',plat:'Local',fecha:'',foto:''},
+  {id:29,art:'Metallica',size:'X',uds:2,coste:154.86,estado:'En stock',ingreso:0,vat:'No',cat:'Tickets',notas:'',plat:'—',fecha:'',foto:''},
+  {id:30,art:'Bon Jovi',size:'X',uds:2,coste:74.56,estado:'En stock',ingreso:0,vat:'No',cat:'Tickets',notas:'',plat:'—',fecha:'',foto:''},
+  {id:31,art:'Shakira',size:'X',uds:2,coste:74.5,estado:'En stock',ingreso:0,vat:'No',cat:'Tickets',notas:'',plat:'—',fecha:'',foto:''},
+  {id:32,art:'Celine Dion',size:'X',uds:4,coste:133.5,estado:'Vendido',ingreso:1555.76,vat:'No',cat:'Tickets',notas:'',plat:'Local',fecha:'',foto:''},
+  {id:33,art:'BTS Colombia',size:'X',uds:2,coste:257.58,estado:'En stock',ingreso:0,vat:'No',cat:'Tickets',notas:'',plat:'—',fecha:'',foto:''},
+  {id:34,art:'Blazing Gmails',size:'X',uds:50,coste:0.15,estado:'En stock',ingreso:0,vat:'No',cat:'Otro',notas:'',plat:'—',fecha:'',foto:''},
+  {id:35,art:'Adidas Samba Originals Jane',size:'38.5',uds:1,coste:100,estado:'En stock',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:36,art:'Adidas Samba Originals Jane',size:'38.5',uds:1,coste:100,estado:'En stock',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:37,art:'Jordan 3 Tenayya',size:'42',uds:1,coste:225,estado:'En stock',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:38,art:'Jordan 3 Tenayya',size:'43',uds:1,coste:225,estado:'En stock',ingreso:0,vat:'Sí',cat:'Zapatillas',notas:'',plat:'—',fecha:'',foto:''},
+  {id:39,art:'Claude Pro',size:'X',uds:1,coste:180,estado:'En stock',ingreso:0,vat:'No',cat:'Otro',notas:'servicio',plat:'—',fecha:'',foto:''},
+];
+const IB=[{nombre:'Revolut',saldo:508.75},{nombre:'Caixa Ahorro',saldo:1164.15},{nombre:'Caixa Cuota',saldo:1920},{nombre:'Revolut 2',saldo:3260.99}];
+
+function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+let stock=ld(SK,IS),bancos=ld(BK,IB),facturas=ld(FK,[]),notas=ld(NK,[]);
+let activeFilter='Todos',gmailToken=null,facTab='venta';
+
+function fmt(n){return(Math.round(n*100)/100).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+'€'}
+
+function calcProfit(i){
+  if(!i.ingreso)return null;
+  const ct=i.coste*i.uds;
+  return i.vat==='Sí'?i.ingreso-(ct/1.21):(i.ingreso/1.21)-ct;
+}
+
+function diasEnStock(i){
+  if(!i.fecha||i.estado!=='En stock')return null;
+  return Math.floor((Date.now()-new Date(i.fecha).getTime())/86400000);
+}
+
+function calcStats(){
+  const es=stock.filter(i=>i.estado==='En stock');
+  const vd=stock.filter(i=>i.estado==='Vendido');
+  return{
+    capitalStock:es.reduce((s,i)=>s+i.coste*i.uds,0),
+    ingresos:vd.filter(i=>i.ingreso>0).reduce((s,i)=>s+i.ingreso,0),
+    beneficio:vd.map(i=>calcProfit(i)).filter(x=>x!=null).reduce((s,x)=>s+x,0),
+    totalBancos:bancos.reduce((s,b)=>s+b.saldo,0),
+    enStockCount:es.length,vendidosCount:vd.length
+  };
+}
+
+function renderDashboard(){
+  const s=calcStats();
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric"><div class="lbl">Capital en stock</div><div class="val">${fmt(s.capitalStock)}</div><div class="sub">${s.enStockCount} items</div></div>
+    <div class="metric"><div class="lbl">Beneficio</div><div class="val" style="color:var(--green)">${fmt(s.beneficio)}</div><div class="sub">${s.vendidosCount} vendidos</div></div>
+    <div class="metric"><div class="lbl">Total cobrado</div><div class="val">${fmt(s.ingresos)}</div><div class="sub">ventas con ingreso</div></div>
+    <div class="metric"><div class="lbl">Total bancos</div><div class="val">${fmt(s.totalBancos)}</div><div class="sub">${bancos.length} cuentas</div></div>`;
+
+  const porMes={};
+  stock.filter(i=>i.estado==='Vendido'&&i.fecha).forEach(i=>{const m=i.fecha.slice(0,7);porMes[m]=(porMes[m]||0)+(calcProfit(i)||0)});
+  const meses=Object.keys(porMes).sort().slice(-6);
+  const maxM=Math.max(...meses.map(m=>porMes[m]),1);
+  document.getElementById('chart-meses').innerHTML=meses.length?meses.map(m=>{
+    const label=new Date(m+'-01').toLocaleDateString('es-ES',{month:'short',year:'2-digit'});
+    return`<div class="chart-row"><span style="width:38px;font-size:11px;color:var(--text2)">${label}</span><div class="chart-bar-bg"><div class="chart-bar" style="width:${Math.max(0,porMes[m]/maxM*100)}%;background:var(--green)"></div></div><span style="width:55px;text-align:right;font-size:11px;color:var(--green)">${fmt(porMes[m])}</span></div>`;
+  }).join(''):'<div style="font-size:13px;color:var(--text3)">Añade fechas de compra a tus ventas para ver el gráfico</div>';
+
+  const porCat={};
+  stock.filter(i=>i.estado==='Vendido').forEach(i=>{porCat[i.cat]=(porCat[i.cat]||0)+(calcProfit(i)||0)});
+  const cats=Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
+  const maxC=Math.max(...cats.map(c=>c[1]),1);
+  document.getElementById('chart-cats').innerHTML=cats.length?cats.map(([c,v])=>`<div class="chart-row"><span style="width:75px;font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c}</span><div class="chart-bar-bg"><div class="chart-bar" style="width:${Math.max(0,v/maxC*100)}%;background:var(--blue)"></div></div><span style="width:55px;text-align:right;font-size:11px;color:var(--blue)">${fmt(v)}</span></div>`).join(''):'<div style="font-size:13px;color:var(--text3)">Sin ventas aún</div>';
+
+  const estados={};stock.forEach(i=>{estados[i.estado]=(estados[i.estado]||0)+1});
+  document.getElementById('estado-resumen').innerHTML=Object.entries(estados).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:.5px solid var(--border);font-size:14px"><span style="color:var(--text2)">${k}</span><span style="font-weight:600">${v}</span></div>`).join('');
+
+  const al=[];
+  stock.filter(i=>i.notas&&i.notas.includes('PREVENTA')).forEach(i=>al.push(`<div class="alert-card" style="background:var(--amber-bg);color:var(--amber-text)">Preventa pendiente: ${i.art}</div>`));
+  stock.filter(i=>i.notas&&i.notas.toLowerCase().includes('tránsito')).forEach(i=>al.push(`<div class="alert-card" style="background:var(--blue-bg);color:var(--blue-text)">Devolución en tránsito: ${i.art}</div>`));
+  stock.filter(i=>{const d=diasEnStock(i);return d!=null&&d>=DIAS}).forEach(i=>al.push(`<div class="alert-card" style="background:var(--red-bg);color:var(--red-text)">${i.art} lleva ${diasEnStock(i)} días sin vender</div>`));
+  document.getElementById('alertas').innerHTML=al.length?al.join(''):'<div style="font-size:13px;color:var(--text3);padding:1rem 0">Sin alertas activas</div>';
+}
+
+function setFilter(f){
+  activeFilter=f;
+  document.querySelectorAll('.f-btn').forEach(b=>b.classList.toggle('active',b.textContent===f));
+  renderStock();
+}
+
+function renderStock(){
+  const q=(document.getElementById('search')||{value:''}).value.toLowerCase();
+  const items=stock.filter(i=>(activeFilter==='Todos'||i.estado===activeFilter)&&(!q||i.art.toLowerCase().includes(q)||(i.plat||'').toLowerCase().includes(q)||(i.cat||'').toLowerCase().includes(q)));
+  if(!items.length){document.getElementById('stock-list').innerHTML='<div class="empty">Sin resultados</div>';return}
+  const bm={'En stock':'b-stock','Vendido':'b-sold','Reservado':'b-res','Cancelado':'b-cancel','Devuelto':'b-transit'};
+  document.getElementById('stock-list').innerHTML=items.map(i=>{
+    const p=calcProfit(i),ct=i.coste*i.uds,d=diasEnStock(i);
+    const db=d!=null?`<span class="dias-badge ${d<DIAS?'dias-ok':'dias-alert'}">${d}d</span>`:'';
+    return`<div class="item-row" onclick="openItem(${i.id})">
+      <div class="row-flex">
+        <div style="flex:1;min-width:0">
+          <div class="item-name">${i.art}${db}</div>
+          <div class="item-meta">T${i.size} · ${i.uds}u · ${fmt(ct)} · ${i.cat}${i.plat&&i.plat!=='—'?' · '+i.plat:''}</div>
+          ${i.notas?`<div class="item-meta" style="color:var(--amber);margin-top:2px">${i.notas}</div>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <span class="badge ${bm[i.estado]||'b-stock'}">${i.estado}</span>
+          ${p!=null?`<div class="${p>=0?'profit-pos':'profit-neg'}">${p>=0?'+':''}${fmt(p)}</div>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderBancos(){
+  const total=bancos.reduce((s,b)=>s+b.saldo,0);
+  document.getElementById('bancos-card').innerHTML=`<div class="card-title">Saldos de cuentas</div>
+    ${bancos.map((b,i)=>`<div class="saldo-row"><span style="font-weight:500">${b.nombre}</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-weight:700;color:${b.saldo>=0?'var(--green)':'var(--red)'}">${fmt(b.saldo)}</span>
+        <button class="edit-btn" onclick="editBanco(${i})">editar</button>
+      </div></div>`).join('')}
+    <div class="total-row"><span>Total</span><span style="color:${total>=0?'var(--green)':'var(--red)'}">${fmt(total)}</span></div>`;
+}
+
+function previewFoto(input,lbl,dat){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{document.getElementById(lbl).textContent='Foto añadida ✓';document.getElementById(dat).value=e.target.result};
+  r.readAsDataURL(f);
+}
+
+function openItem(id){
+  const i=stock.find(x=>x.id===id);if(!i)return;
+  const p=calcProfit(i),ct=i.coste*i.uds,roi=p&&ct>0?((p/ct)*100).toFixed(1):null,d=diasEnStock(i);
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-size:16px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.art}</div>
+      ${p!=null?'<span style="font-size:14px;font-weight:700;color:'+(p>=0?'var(--green)':'var(--red)')+';flex-shrink:0;margin-left:8px">'+(p>=0?'+':'')+fmt(p)+'</span>':''}
+    </div>
+    ${i.foto?`<img src="${i.foto}" class="item-photo">`:''}
+    <div style="background:var(--bg2);border-radius:var(--radius);padding:10px 12px;margin-bottom:14px;display:flex;gap:14px;font-size:13px;flex-wrap:wrap">
+      <span style="color:var(--text2)">Coste <strong style="color:var(--text)">${fmt(ct)}</strong></span>
+      ${roi?`<span style="color:var(--text2)">ROI <strong style="color:var(--text)">${roi}%</strong></span>`:''}
+      ${d!=null?`<span style="color:var(--text2)">En stock <strong style="color:${d>=DIAS?'var(--red)':'var(--green)'}">${d}d</strong></span>`:''}
+    </div>
+    <div class="form-grid" style="margin-bottom:10px">
+      <div class="form-row"><label>Artículo</label><input id="e-art" value="${i.art}"></div>
+      <div class="form-row"><label>Talla</label><input id="e-size" value="${i.size}"></div>
+    </div>
+    <div class="form-grid" style="margin-bottom:10px">
+      <div class="form-row"><label>Uds.</label><input id="e-uds" type="number" value="${i.uds}" min="1"></div>
+      <div class="form-row"><label>Coste unit. (€)</label><input id="e-coste" type="number" value="${i.coste}" inputmode="decimal"></div>
+    </div>
+    <div class="form-grid" style="margin-bottom:10px">
+      <div class="form-row"><label>Estado</label><select id="e-estado">${['En stock','Vendido','Reservado','Cancelado','Devuelto'].map(s=>`<option${i.estado===s?' selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="form-row"><label>VAT Flip</label><select id="e-vat"><option${i.vat==='No'?' selected':''}>No</option><option${i.vat==='Sí'?' selected':''}>Sí</option></select></div>
+    </div>
+    <div class="form-grid" style="margin-bottom:10px">
+      <div class="form-row"><label>Ingreso venta (€)</label><input id="e-ingreso" type="number" value="${i.ingreso||''}" inputmode="decimal" placeholder="0"></div>
+      <div class="form-row"><label>Plataforma</label><select id="e-plat">${['—','StockX','Wallapop','Vinted','Alias','Local','Instagram','Otra'].map(p=>`<option${(i.plat||'—')===p?' selected':''}>${p}</option>`).join('')}</select></div>
+    </div>
+    <div class="form-grid" style="margin-bottom:10px">
+      <div class="form-row"><label>Categoría</label><select id="e-cat">${['Zapatillas','Ropa','Tickets','Coleccionables','Vinilos','Otro'].map(c=>`<option${i.cat===c?' selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Fecha compra</label><input id="e-fecha" type="date" value="${i.fecha||''}"></div>
+    </div>
+    <div class="form-row" style="margin-bottom:10px"><label>Notas</label><input id="e-notas" value="${i.notas||''}"></div>
+    <div class="form-row" style="margin-bottom:14px">
+      <label>Foto</label>
+      <div class="photo-placeholder" onclick="document.getElementById('e-foto-input').click()"><span id="e-foto-label">${i.foto?'Cambiar foto':'+ Añadir foto'}</span></div>
+      <input type="file" id="e-foto-input" accept="image/*" style="display:none" onchange="previewFoto(this,'e-foto-label','e-foto-data')">
+      <input type="hidden" id="e-foto-data" value="">
+    </div>
+    <button class="btn-primary" onclick="saveItem(${i.id})" style="margin-bottom:10px">Guardar cambios</button>
+    <button class="btn-secondary" onclick="abrirDevolucion(${i.id})" style="margin-bottom:10px">Registrar devolución</button>
+    <button class="btn-danger" onclick="deleteItem(${i.id})">Eliminar artículo</button>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function revolut(){return bancos.find(b=>b.nombre==='Revolut')||bancos[0]}
+function adjRevolut(d){const r=revolut();if(r){r.saldo=Math.round((r.saldo+d)*100)/100;sv(BK,bancos)}}
+
+function abrirDevolucion(id){
+  const i=stock.find(x=>x.id===id);if(!i)return;
+  const costoTotal=(i.coste*i.uds).toFixed(2);
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-handle"></div>
+    <div class="modal-title">Registrar devolución</div>
+    <div style="background:var(--red-bg);border-radius:var(--radius);padding:10px 12px;margin-bottom:14px;font-size:13px;color:var(--red-text)">
+      ${i.art} · T${i.size} · Coste pagado: ${fmt(i.coste*i.uds)}
+    </div>
+    <div class="form-row" style="margin-bottom:10px"><label>Importe reembolsado (€)</label><input id="dev-reembolso" type="number" value="${costoTotal}" inputmode="decimal"></div>
+    <div class="form-row" style="margin-bottom:16px"><label>Gastos extra (envío, fees...) (€)</label><input id="dev-gastos" type="number" value="0" inputmode="decimal"></div>
+    <div id="dev-preview" style="background:var(--bg2);border-radius:var(--radius);padding:10px 12px;margin-bottom:16px;font-size:13px"></div>
+    <button class="btn-primary" onclick="confirmarDevolucion(${i.id})" style="margin-bottom:10px">Confirmar devolución</button>
+    <button class="btn-danger" onclick="closeModal()">Cancelar</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+  const update=()=>{
+    const r=parseFloat(document.getElementById('dev-reembolso').value)||0;
+    const g=parseFloat(document.getElementById('dev-gastos').value)||0;
+    const neto=r-g;
+    document.getElementById('dev-preview').innerHTML=`Reembolso: <strong>${fmt(r)}</strong> − Gastos: <strong>${fmt(g)}</strong> = <strong style="color:${neto>=0?'var(--green)':'var(--red)'}">${fmt(neto)}</strong> a Revolut`;
+  };
+  update();
+  document.getElementById('dev-reembolso').oninput=update;
+  document.getElementById('dev-gastos').oninput=update;
+}
+
+function confirmarDevolucion(id){
+  const i=stock.find(x=>x.id===id);if(!i)return;
+  const reembolso=parseFloat(document.getElementById('dev-reembolso').value)||0;
+  const gastos=parseFloat(document.getElementById('dev-gastos').value)||0;
+  const neto=reembolso-gastos;
+  const prevIngreso=i.ingreso||0;
+  const prevEstado=i.estado;
+  if(prevEstado==='Vendido'&&prevIngreso>0) adjRevolut(-prevIngreso);
+  adjRevolut(neto);
+  i.estado='Devuelto';
+  i.ingreso=0;
+  i.notas=(i.notas?i.notas+' | ':'')+'Dev: +'+reembolso.toFixed(2)+'€'+(gastos>0?' -'+gastos.toFixed(2)+'€ gastos':'');
+  sv(SK,stock);closeModal();renderAll();
+}
+
+function saveItem(id){
+  const i=stock.find(x=>x.id===id);if(!i)return;
+  const pE=i.estado,pI=i.ingreso||0,pC=i.coste*i.uds;
+  const nU=parseInt(document.getElementById('e-uds').value)||1;
+  const nC=parseFloat(document.getElementById('e-coste').value)||0;
+  const nE=document.getElementById('e-estado').value;
+  const nI=parseFloat(document.getElementById('e-ingreso').value)||0;
+  const nFoto=document.getElementById('e-foto-data').value;
+  if(nC*nU!==pC) adjRevolut(pC-nC*nU);
+  if(pE!=='Vendido'&&nE==='Vendido'&&nI>0) adjRevolut(nI);
+  else if(pE==='Vendido'&&nE==='Vendido'&&nI!==pI) adjRevolut(nI-pI);
+  else if(pE==='Vendido'&&nE!=='Vendido'&&pI>0) adjRevolut(-pI);
+  i.art=document.getElementById('e-art').value.trim()||i.art;
+  i.size=document.getElementById('e-size').value||i.size;
+  i.uds=nU;i.coste=nC;i.estado=nE;i.vat=document.getElementById('e-vat').value;
+  i.ingreso=nI;i.plat=document.getElementById('e-plat').value;
+  i.cat=document.getElementById('e-cat').value;i.fecha=document.getElementById('e-fecha').value;
+  i.notas=document.getElementById('e-notas').value;
+  if(nFoto) i.foto=nFoto;
+  sv(SK,stock);closeModal();renderAll();
+}
+
+function deleteItem(id){
+  if(!confirm('¿Eliminar este artículo?'))return;
+  stock=stock.filter(x=>x.id!==id);sv(SK,stock);closeModal();renderAll();
+}
+
+function editBanco(idx){
+  const b=bancos[idx];
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-handle"></div><div class="modal-title">Editar cuenta</div>
+    <div class="form-row" style="margin-bottom:10px"><label>Nombre</label><input id="b-nombre" value="${b.nombre}"></div>
+    <div class="form-row" style="margin-bottom:16px"><label>Saldo (€)</label><input id="b-saldo" type="number" value="${b.saldo}" inputmode="decimal"></div>
+    <button class="btn-primary" style="margin-bottom:10px" onclick="saveBanco(${idx})">Guardar</button>
+    <button class="btn-danger" onclick="deleteBanco(${idx})">Eliminar cuenta</button>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function saveBanco(idx){
+  bancos[idx].nombre=document.getElementById('b-nombre').value.trim()||bancos[idx].nombre;
+  bancos[idx].saldo=parseFloat(document.getElementById('b-saldo').value)||0;
+  sv(BK,bancos);closeModal();renderBancos();
+}
+function deleteBanco(idx){if(!confirm('¿Eliminar?'))return;bancos.splice(idx,1);sv(BK,bancos);closeModal();renderBancos()}
+function addBanco(){
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-handle"></div><div class="modal-title">Nueva cuenta</div>
+    <div class="form-row" style="margin-bottom:10px"><label>Nombre</label><input id="b-nombre" placeholder="Ej: PayPal"></div>
+    <div class="form-row" style="margin-bottom:16px"><label>Saldo inicial (€)</label><input id="b-saldo" type="number" value="0" inputmode="decimal"></div>
+    <button class="btn-primary" onclick="saveNewBanco()">Guardar cuenta</button>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function saveNewBanco(){
+  const n=document.getElementById('b-nombre').value.trim();if(!n){alert('Introduce el nombre');return}
+  bancos.push({nombre:n,saldo:parseFloat(document.getElementById('b-saldo').value)||0});
+  sv(BK,bancos);closeModal();renderBancos();
+}
+
+function addItem(){
+  const art=document.getElementById('n-art').value.trim();
+  if(!art){alert('Introduce el nombre del artículo');return}
+  const item={id:Date.now(),art,size:document.getElementById('n-size').value||'X',uds:parseInt(document.getElementById('n-uds').value)||1,coste:parseFloat(document.getElementById('n-coste').value)||0,estado:document.getElementById('n-estado').value,ingreso:parseFloat(document.getElementById('n-ingreso').value)||0,vat:document.getElementById('n-vat').value,cat:document.getElementById('n-cat').value,plat:document.getElementById('n-plat').value,fecha:document.getElementById('n-fecha').value,notas:document.getElementById('n-notas').value,foto:document.getElementById('n-foto-data').value};
+  stock.unshift(item);sv(SK,stock);
+  adjRevolut(-(item.coste*item.uds));
+  if(item.estado==='Vendido'&&item.ingreso>0) adjRevolut(item.ingreso);
+  ['n-art','n-size','n-coste','n-ingreso','n-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.getElementById('n-uds').value=1;
+  document.getElementById('n-foto-data').value='';
+  document.getElementById('n-foto-label').textContent='+ Añadir foto (cámara o galería)';
+  document.getElementById('n-fecha').value=new Date().toISOString().split('T')[0];
+  showPage('stock');
+}
+
+// NOTAS
+function renderNotas(){
+  const list=document.getElementById('notas-list');if(!list)return;
+  if(!notas.length){list.innerHTML='<div class="empty">Sin notas. Toca + para añadir.</div>';return}
+  list.innerHTML=notas.map((n,i)=>`<div class="nota-card" onclick="editNota(${i})"><div>${n.texto.replace(/\n/g,'<br>')}</div><div class="nota-fecha">${new Date(n.fecha).toLocaleDateString('es-ES',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div>`).join('');
+}
+function nuevaNota(){
+  document.getElementById('modal-content').innerHTML=`<div class="modal-handle"></div><div class="modal-title">Nueva nota</div><div class="form-row" style="margin-bottom:16px"><label>Nota</label><textarea id="nota-txt" placeholder="Escribe aquí..."></textarea></div><button class="btn-primary" onclick="saveNota(-1)">Guardar nota</button>`;
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('nota-txt').focus(),100);
+}
+function editNota(idx){
+  const n=notas[idx];
+  document.getElementById('modal-content').innerHTML=`<div class="modal-handle"></div><div class="modal-title">Editar nota</div><div class="form-row" style="margin-bottom:16px"><label>Nota</label><textarea id="nota-txt">${n.texto}</textarea></div><button class="btn-primary" onclick="saveNota(${idx})" style="margin-bottom:10px">Guardar cambios</button><button class="btn-danger" onclick="deleteNota(${idx})">Eliminar nota</button>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function saveNota(idx){
+  const t=document.getElementById('nota-txt').value.trim();if(!t)return;
+  if(idx===-1)notas.unshift({texto:t,fecha:Date.now()});
+  else{notas[idx].texto=t;notas[idx].fecha=Date.now()}
+  sv(NK,notas);closeModal();renderNotas();
+}
+function deleteNota(idx){if(!confirm('¿Eliminar?'))return;notas.splice(idx,1);sv(NK,notas);closeModal();renderNotas()}
+
+// FACTURAS
+function switchFacturaTab(tab){
+  facTab=tab;
+  document.getElementById('subtab-venta').style.display=tab==='venta'?'block':'none';
+  document.getElementById('subtab-compra').style.display=tab==='compra'?'block':'none';
+  document.getElementById('tab-venta').classList.toggle('active',tab==='venta');
+  document.getElementById('tab-compra').classList.toggle('active',tab==='compra');
+}
+function nextNum(){let n=parseInt(localStorage.getItem(FNK)||'0')+1;localStorage.setItem(FNK,n);return String(n).padStart(4,'0')}
+function nuevaFactura(){
+  const hoy=new Date().toISOString().split('T')[0];
+  document.getElementById('modal-content').innerHTML=`<div class="modal-handle"></div><div class="modal-title">Nueva factura</div>
+    <div class="form-section"><div class="section-title">Cliente</div>
+      <div class="form-row"><label>Nombre / Empresa</label><input id="f-cli" placeholder="Nombre del cliente"></div>
+      <div class="form-grid"><div class="form-row"><label>NIF / NIE</label><input id="f-nif" placeholder="00000000X"></div><div class="form-row"><label>Fecha</label><input id="f-fec" type="date" value="${hoy}"></div></div>
+      <div class="form-row"><label>Dirección</label><input id="f-dir" placeholder="Calle, número, ciudad"></div>
+    </div>
+    <div class="form-section"><div class="section-title">Concepto</div>
+      <div class="form-row"><label>Descripción</label><input id="f-desc" placeholder="Ej: Nike SB Dunk Low EU44"></div>
+      <div class="form-grid"><div class="form-row"><label>Base imponible (€)</label><input id="f-base" type="number" inputmode="decimal" placeholder="0"></div>
+        <div class="form-row"><label>IVA %</label><select id="f-iva"><option value="21">21%</option><option value="0">0% (VAT Flip)</option><option value="10">10%</option></select></div>
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:16px"><label>Notas</label><input id="f-not" placeholder="Opcional"></div>
+    <button class="btn-primary" onclick="generarFactura()">Generar factura PDF</button>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function generarFactura(){
+  const cli=document.getElementById('f-cli').value.trim(),nif=document.getElementById('f-nif').value.trim(),fec=document.getElementById('f-fec').value,dir=document.getElementById('f-dir').value.trim(),desc=document.getElementById('f-desc').value.trim(),base=parseFloat(document.getElementById('f-base').value)||0,iva=parseFloat(document.getElementById('f-iva').value),not=document.getElementById('f-not').value.trim();
+  if(!cli||!desc||!base){alert('Rellena cliente, descripción e importe');return}
+  const num=nextNum(),ivaAmt=Math.round(base*iva)/100,total=Math.round((base+ivaAmt)*100)/100;
+  const f={id:Date.now(),num,fecha:fec,cliente:cli,nif,dir,desc,base,ivaPct:iva,iva:ivaAmt,total,notas:not};
+  facturas.unshift(f);sv(FK,facturas);closeModal();renderFacturas();imprimirFactura(f);
+}
+function imprimirFactura(f){
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Factura ${f.num}</title><style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;color:#1a1a1a;font-size:14px}.hdr{display:flex;justify-content:space-between;margin-bottom:40px}.emisor h2{font-size:20px;font-weight:700;margin-bottom:4px}.emisor p{font-size:12px;color:#666;line-height:1.6}.num{text-align:right}.num h1{font-size:28px;font-weight:700}.cbox{background:#f5f5f4;border-radius:8px;padding:16px;margin-bottom:30px}.cbox h3{font-size:11px;text-transform:uppercase;color:#666;margin-bottom:8px}table{width:100%;border-collapse:collapse;margin-bottom:20px}th{text-align:left;font-size:11px;text-transform:uppercase;color:#666;padding:8px;border-bottom:2px solid #eee}td{padding:12px 8px;border-bottom:1px solid #eee}.tots{margin-left:auto;width:260px}.tr{display:flex;justify-content:space-between;padding:6px 0;font-size:13px}.tt{display:flex;justify-content:space-between;padding:10px 0;font-size:16px;font-weight:700;border-top:2px solid #1a1a1a;margin-top:4px}.ft{margin-top:40px;padding-top:20px;border-top:1px solid #eee;font-size:11px;color:#999;text-align:center}@media print{body{margin:20px}}</style></head><body>
+  <div class="hdr"><div class="emisor"><h2>LINO FLORIANO GALÁN</h2><p>NIF: 76053460G<br>C/ Alcor del Roble, 24<br>10195 Cáceres<br>linoflorianogalan@gmail.com</p></div>
+  <div class="num"><h1>Factura</h1><p style="font-size:18px;font-weight:600">N.º ${f.num}</p><p>Fecha: ${f.fecha}</p></div></div>
+  <div class="cbox"><h3>Facturar a</h3><p style="font-weight:600;font-size:15px">${f.cliente}</p>${f.nif?`<p>NIF/NIE: ${f.nif}</p>`:''}${f.dir?`<p>${f.dir}</p>`:''}</div>
+  <table><thead><tr><th>Descripción</th><th style="text-align:right">Base</th><th style="text-align:right">IVA</th><th style="text-align:right">Total</th></tr></thead>
+  <tbody><tr><td>${f.desc}${f.notas?'<br><span style="font-size:12px;color:#999">'+f.notas+'</span>':''}</td><td style="text-align:right">${f.base.toFixed(2)} €</td><td style="text-align:right">${f.ivaPct}%</td><td style="text-align:right">${(f.base+f.iva).toFixed(2)} €</td></tr></tbody></table>
+  <div class="tots"><div class="tr"><span>Base imponible</span><span>${f.base.toFixed(2)} €</span></div><div class="tr"><span>IVA (${f.ivaPct}%)</span><span>${f.iva.toFixed(2)} €</span></div><div class="tt"><span>Total</span><span>${f.total.toFixed(2)} €</span></div></div>
+  ${f.ivaPct===0?'<p style="margin-top:20px;font-size:12px;color:#666">Operación exenta de IVA — régimen de ventas intracomunitarias (VAT Flip). El destinatario es responsable del IVA en su país.</p>':''}
+  <div class="ft">Factura emitida por LINO FLORIANO GALÁN · NIF 76053460G</div>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+function renderFacturas(){
+  const list=document.getElementById('facturas-list');if(!list)return;
+  if(!facturas.length){list.innerHTML='<div class="empty">Sin facturas emitidas</div>';return}
+  list.innerHTML=facturas.map(f=>`<div class="card" style="margin-bottom:10px;cursor:pointer" onclick='imprimirFactura(${JSON.stringify(f).replace(/'/g,"&#39;")})'>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-weight:600;font-size:14px">N.º ${f.num} — ${f.cliente}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${f.fecha} · ${f.desc}</div></div>
+      <div style="font-weight:700;color:var(--green)">${f.total.toFixed(2)}€</div>
+    </div></div>`).join('');
+}
+
+// GMAIL
+function abrirEmail(id){window.open(`https://mail.google.com/mail/u/0/#inbox/${id}`,'_blank')}
+function gmailLogin(){
+  const c=google.accounts.oauth2.initTokenClient({client_id:GID,scope:'https://www.googleapis.com/auth/gmail.readonly',callback:r=>{if(r.access_token){gmailToken=r.access_token;document.getElementById('gmail-status').style.display='none';cargarGmail()}}});
+  c.requestAccessToken();
+}
+async function cargarGmail(){
+  const div=document.getElementById('gmail-facturas');
+  div.innerHTML='<div class="empty">Cargando...</div>';
+  try{
+    const q=encodeURIComponent('label:facturas-limitless-snkrs');
+    const r=await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=50`,{headers:{Authorization:`Bearer ${gmailToken}`}});
+    const data=await r.json();
+    if(!data.messages||!data.messages.length){div.innerHTML='<div class="empty">No hay correos en la etiqueta</div>';return}
+    const mails=await Promise.all(data.messages.slice(0,30).map(m=>fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=Date&metadataHeaders=From`,{headers:{Authorization:`Bearer ${gmailToken}`}}).then(r=>r.json())));
+    div.innerHTML=mails.map(m=>{
+      const h=Object.fromEntries((m.payload.headers||[]).map(h=>[h.name,h.value]));
+      const f=h.Date?new Date(h.Date).toLocaleDateString('es-ES'):'—';
+      return`<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="abrirEmail('${m.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:13px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.Subject||'(sin asunto)'}</div>
+            <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.From||''}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${f}</div>
+          </div>
+          <svg style="flex-shrink:0;width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </div></div>`;
+    }).join('');
+  }catch(e){
+    div.innerHTML='<div class="empty" style="color:var(--red)">Error al cargar Gmail. Reconecta.</div>';
+    document.getElementById('gmail-status').style.display='block';
+  }
+}
+
+// PASSWORD
+function checkPassword(){
+  if(document.getElementById('lock-input').value==='Perroflauta56!!'){
+    sessionStorage.setItem('la','1');
+    document.getElementById('lock-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    renderAll();
+  }else{
+    document.getElementById('lock-error').style.display='block';
+    document.getElementById('lock-input').value='';
+  }
+}
+if(sessionStorage.getItem('la')==='1'){
+  document.getElementById('lock-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+}
+
+const pageTitles={dashboard:['Dashboard','Limitless Resell'],stock:['Stock','Todos los artículos'],bancos:['Bancos','Saldos de cuentas'],facturas:['Facturas','Emitidas y de compra'],nuevo:['Nuevo artículo','Añadir al stock'],notas:['Notas','Bloc de notas']};
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const idx=['dashboard','stock','bancos','facturas','nuevo','notas'].indexOf(name);
+  if(idx>=0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  const[t,s]=pageTitles[name]||[name,''];
+  document.getElementById('page-title').textContent=t;
+  document.getElementById('page-sub').textContent=s;
+  if(name==='dashboard')renderDashboard();
+  if(name==='stock')renderStock();
+  if(name==='bancos')renderBancos();
+  if(name==='facturas')renderFacturas();
+  if(name==='notas')renderNotas();
+  window.scrollTo(0,0);
+}
+
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modal-overlay'))return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install-banner').style.display='flex'});
+document.getElementById('install-btn').addEventListener('click',async()=>{
+  if(!deferredPrompt)return;deferredPrompt.prompt();
+  const{outcome}=await deferredPrompt.userChoice;
+  if(outcome==='accepted')document.getElementById('install-banner').style.display='none';
+  deferredPrompt=null;
+});
+
+document.getElementById('n-fecha').value=new Date().toISOString().split('T')[0];
+function renderAll(){renderDashboard();renderStock();renderBancos();renderFacturas();renderNotas()}
+if(sessionStorage.getItem('la')==='1')renderAll();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+</body>
+</html>
